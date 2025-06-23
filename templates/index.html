@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="es">
+    <head>
+        <meta charset="UTF-8">
+        <title>Calculadora Zona de Fresnel</title>
+        <link rel="stylesheet" href="{{ url_for('static', filename='estilo.css') }}">
+    </head>
+<body>
+    <h1>📡 Calculadora Zona de Fresnel</h1>
+    <form method="POST">
+        <label>Distancia entre antenas (en km):</label><br>
+        <input type="text" name="distancia" required><br>
+
+        <label>Frecuencia de la señal (en GHz):</label><br>
+        <input type="text" name="frecuencia" required><br>
+
+        <button type="submit">Calcular</button>
+    </form>
+
+    {% if resultado %}
+    <div class="resultado">{{ resultado }}</div>
+    {% endif %}
+
+   
+
+
+    <footer style="margin-top: 40px; color: #777;">
+        Creado por: <strong>Guillermo Cuello</strong>
+    </footer>
+</body>
+</html>
