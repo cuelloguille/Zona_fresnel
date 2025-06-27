@@ -1,30 +1,139 @@
 <!DOCTYPE html>
 <html lang="es">
-    <head>
-        <meta charset="UTF-8">
-        <title>Calculadora Zona de Fresnel</title>
-        <link rel="stylesheet" href="{{ url_for('static', filename='estilo.css') }}">
-    </head>
+<head>
+    <meta charset="UTF-8">
+    <title>Calculadora Zona de Fresnel</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='estilo.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
 <body>
     <h1>📡 Calculadora Zona de Fresnel</h1>
+
     <form method="POST">
-        <label>Distancia entre antenas (en km):</label><br>
-        <input type="text" name="distancia" required><br>
-
-        <label>Frecuencia de la señal (en GHz):</label><br>
-        <input type="text" name="frecuencia" required><br>
-
+        <label>Distancia entre antenas (en <strong>km</strong>):</label>
+        <input type="text" name="distancia" placeholder="Ej: 1.2" required value="{{ distancia }}">
+    
+        <label>Frecuencia de la señal (en <strong>GHz</strong>):</label>
+        <input type="text" name="frecuencia" placeholder="Ej: 2.4" required value="{{ frecuencia }}">
+    
+        <hr>
+        <h3>🔧 Opcional: Alturas de las antenas</h3>
+        <hr>
+        <label>Altura de la antena 1 (en <strong>m</strong>):</label>
+        <input type="text" name="altura1" placeholder="Ej: 30" value="{{ altura1 }}">
+    
+        <label>Altura de la antena 2 (en <strong>m</strong>):</label>
+        <input type="text" name="altura2" placeholder="Ej: 45" value="{{ altura2 }}">
+    
+        <hr>
         <button type="submit">Calcular</button>
     </form>
+    
+    
+    
+    
 
     {% if resultado %}
-    <div class="resultado">{{ resultado }}</div>
+    <div class="resultado">
+        <p style="font-weight: bold;">{{ resultado|safe }}</p>
+    </div>
+
+    <div class="grafico">
+        <h2>📊 Representación de la Zona de Fresnel</h2>
+        <canvas id="fresnelChart" width="600" height="300"></canvas>
+
+        <script>
+            const distancia = {{ distancia | default(0) }};
+            const fresnel = {{ fresnel | default(0) }};
+            const altura1 = {{ altura1 if altura1 is not none else 'null' }};
+            const altura2 = {{ altura2 if altura2 is not none else 'null' }};
+
+            const numPuntos = 100;
+            const puntosX = [];
+            const puntosY_superior = [];
+            const puntosY_inferior = [];
+            const lineaVisual = [];
+
+            for (let i = 0; i <= numPuntos; i++) {
+                const x = (i / numPuntos) * distancia;
+                const factor = Math.sqrt(1 - Math.pow((2 * x / distancia - 1), 2));
+                const yFresnel = fresnel * factor;
+
+                // Altura base: o línea inclinada entre antenas, o 40% por defecto
+                let base;
+                if (altura1 !== null && altura2 !== null) {
+                    base = altura1 + ((altura2 - altura1) * (x / distancia));
+                } else {
+                    base = fresnel * 0.4;
+                }
+
+                puntosX.push(x.toFixed(2));
+                puntosY_superior.push((base + yFresnel).toFixed(2));
+                puntosY_inferior.push((base - yFresnel).toFixed(2));
+                lineaVisual.push(base.toFixed(2));
+            }
+
+            const ctx = document.getElementById('fresnelChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: puntosX,
+                    datasets: [
+                        {
+                            label: 'Zona de Fresnel (superior)',
+                            data: puntosY_superior,
+                            borderColor: 'blue',
+                            backgroundColor: 'rgba(0, 0, 255, 0.1)',
+                            fill: '-1',
+                            pointRadius: 0
+                        },
+                        {
+                            label: 'Zona de Fresnel (inferior)',
+                            data: puntosY_inferior,
+                            borderColor: 'blue',
+                            backgroundColor: 'rgba(0, 0, 255, 0.1)',
+                            fill: false,
+                            pointRadius: 0
+                        },
+                        {
+                            label: 'Línea visual entre antenas',
+                            data: lineaVisual,
+                            borderColor: 'red',
+                            borderDash: [5, 5],
+                            fill: false,
+                            pointRadius: 0
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Distancia (km)'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Altura (m)'
+                            },
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        </script>
+    </div>
     {% endif %}
 
-   
+    <div class="formula">
+        <h2>📐 Fórmula utilizada</h2>
+        <img src="{{ url_for('static', filename='formula.png') }}" alt="Zona de Fresnel" width="400">
+    </div>
 
-
-    <footer style="margin-top: 40px; color: #777;">
+    <footer>
         Creado por: <strong>Guillermo Cuello</strong>
     </footer>
 </body>

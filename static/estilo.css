@@ -30,6 +30,24 @@ button {
 }
 .resultado {
     margin-top: 20px;
-    font-size: 20px;
-    color: #333;
+    padding: 15px;
+    background-color: #e0f7fa;  /* celeste claro */
+    border-left: 6px solid #00796b; /* borde destacado */
+    border-radius: 8px;
+    font-size: 40px;
+    color: #004d40;
+    font-weight: bold;
+    box-shadow: 2px 2px 10px rgba(0,0,0,0.1);
 }
+
+
+.formula {
+    margin-top: 20px;
+    text-align: center;
+}
+
+.formula h2 {
+    font-weight: normal;
+    color: #444;
+}
+
