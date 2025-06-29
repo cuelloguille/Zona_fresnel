@@ -68,6 +68,6 @@ Altura de ambas antenas (m) (opcional)
 
 🚫 Verificar interferencias: muestra el 40% mínimo libre recomendado de la zona de Fresnel para asegurar que no existan obstáculos que degraden la señal.
 
-👨‍💻 Autor
+👨‍💻 Autor :
 Desarrollado por Guillermo Cuello
 
