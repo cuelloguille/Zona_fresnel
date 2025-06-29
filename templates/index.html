@@ -1,65 +1,73 @@
-<!DOCTYPE html>
-<html lang="es">
+<!DOCTYPE html> <!-- Declara el tipo de documento HTML5 -->
+<html lang="es"> <!-- Indica que el contenido está en español -->
 <head>
-    <meta charset="UTF-8">
-    <title>Calculadora Zona de Fresnel</title>
+    <meta charset="UTF-8"> <!-- Codificación de caracteres en UTF-8 -->
+    <title>Calculadora Zona de Fresnel</title> <!-- Título de la pestaña del navegador -->
+    
+    <!-- Enlace al archivo de estilos CSS que está en la carpeta 'static' -->
     <link rel="stylesheet" href="{{ url_for('static', filename='estilo.css') }}">
+    
+    <!-- Importa la librería Chart.js desde CDN para dibujar gráficos -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-    <h1>📡 Calculadora Zona de Fresnel</h1>
+    <h1>📡 Calculadora Zona de Fresnel</h1> <!-- Título principal de la página -->
 
+    <!-- Formulario que se envía mediante POST al backend Flask -->
     <form method="POST">
         <label>Distancia entre antenas (en <strong>km</strong>):</label>
         <input type="text" name="distancia" placeholder="Ej: 1.2" required value="{{ distancia }}">
-    
+
         <label>Frecuencia de la señal (en <strong>GHz</strong>):</label>
         <input type="text" name="frecuencia" placeholder="Ej: 2.4" required value="{{ frecuencia }}">
-    
+
         <hr>
         <h3>🔧 Opcional: Alturas de las antenas</h3>
         <hr>
+
+        <!-- Campos opcionales para alturas -->
         <label>Altura de la antena 1 (en <strong>m</strong>):</label>
         <input type="text" name="altura1" placeholder="Ej: 30" value="{{ altura1 }}">
-    
+
         <label>Altura de la antena 2 (en <strong>m</strong>):</label>
         <input type="text" name="altura2" placeholder="Ej: 45" value="{{ altura2 }}">
-    
-        <hr>
-        <button type="submit">Calcular</button>
-    </form>
-    
-    
-    
-    
 
+        <hr>
+        <button type="submit">Calcular</button> <!-- Botón para enviar el formulario -->
+    </form>
+
+    <!-- Sección que aparece solo si hay resultado (HTML condicional de Jinja2) -->
     {% if resultado %}
     <div class="resultado">
+        <!-- Muestra el resultado con formato HTML seguro -->
         <p style="font-weight: bold;">{{ resultado|safe }}</p>
     </div>
 
     <div class="grafico">
         <h2>📊 Representación de la Zona de Fresnel</h2>
-        <canvas id="fresnelChart" width="600" height="300"></canvas>
+        <canvas id="fresnelChart" width="600" height="300"></canvas> <!-- Área para el gráfico -->
 
         <script>
+            // Variables recibidas del backend
             const distancia = {{ distancia | default(0) }};
             const fresnel = {{ fresnel | default(0) }};
             const altura1 = {{ altura1 if altura1 is not none else 'null' }};
             const altura2 = {{ altura2 if altura2 is not none else 'null' }};
 
+            // Inicializa arrays para puntos del gráfico
             const numPuntos = 100;
             const puntosX = [];
             const puntosY_superior = [];
             const puntosY_inferior = [];
             const lineaVisual = [];
 
+            // Calcula puntos a lo largo de la distancia entre antenas
             for (let i = 0; i <= numPuntos; i++) {
                 const x = (i / numPuntos) * distancia;
-                const factor = Math.sqrt(1 - Math.pow((2 * x / distancia - 1), 2));
+                const factor = Math.sqrt(1 - Math.pow((2 * x / distancia - 1), 2)); // Factor elíptico
                 const yFresnel = fresnel * factor;
 
-                // Altura base: o línea inclinada entre antenas, o 40% por defecto
+                // Base: línea visual entre antenas o 40% del Fresnel si no hay alturas
                 let base;
                 if (altura1 !== null && altura2 !== null) {
                     base = altura1 + ((altura2 - altura1) * (x / distancia));
@@ -67,12 +75,14 @@
                     base = fresnel * 0.4;
                 }
 
+                // Agrega los puntos al gráfico
                 puntosX.push(x.toFixed(2));
                 puntosY_superior.push((base + yFresnel).toFixed(2));
                 puntosY_inferior.push((base - yFresnel).toFixed(2));
                 lineaVisual.push(base.toFixed(2));
             }
 
+            // Configura y renderiza el gráfico con Chart.js
             const ctx = document.getElementById('fresnelChart').getContext('2d');
             new Chart(ctx, {
                 type: 'line',
@@ -84,7 +94,7 @@
                             data: puntosY_superior,
                             borderColor: 'blue',
                             backgroundColor: 'rgba(0, 0, 255, 0.1)',
-                            fill: '-1',
+                            fill: '-1',  // Rellena hasta el dataset anterior
                             pointRadius: 0
                         },
                         {
@@ -99,7 +109,7 @@
                             label: 'Línea visual entre antenas',
                             data: lineaVisual,
                             borderColor: 'red',
-                            borderDash: [5, 5],
+                            borderDash: [5, 5], // Línea punteada
                             fill: false,
                             pointRadius: 0
                         }
@@ -126,13 +136,15 @@
             });
         </script>
     </div>
-    {% endif %}
+    {% endif %} <!-- Fin de la condición de resultado -->
 
+    <!-- Imagen con la fórmula matemática de Fresnel -->
     <div class="formula">
         <h2>📐 Fórmula utilizada</h2>
         <img src="{{ url_for('static', filename='formula.png') }}" alt="Zona de Fresnel" width="400">
     </div>
 
+    <!-- Pie de página con autor -->
     <footer>
         Creado por: <strong>Guillermo Cuello</strong>
     </footer>
